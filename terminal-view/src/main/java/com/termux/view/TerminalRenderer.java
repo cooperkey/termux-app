@@ -27,6 +27,9 @@ public final class TerminalRenderer {
     /** The {@link Paint#getFontSpacing()}. See http://www.fampennings.nl/maarten/android/08numgrid/font.png */
     final int mFontLineSpacing;
     /** The {@link Paint#ascent()}. See http://www.fampennings.nl/maarten/android/08numgrid/font.png */
+
+    public float mDynamicLineSpacing = 0;
+
     private final int mFontAscent;
     /** The {@link #mFontLineSpacing} + {@link #mFontAscent}. */
     final int mFontLineSpacingAndAscent;
@@ -69,9 +72,15 @@ public final class TerminalRenderer {
         if (reverseVideo)
             canvas.drawColor(palette[TextStyle.COLOR_INDEX_FOREGROUND], PorterDuff.Mode.SRC);
 
+        if (mEmulator.mRows > 0 && canvas.getHeight() > mFontLineSpacingAndAscent) {
+            mDynamicLineSpacing = (float) (canvas.getHeight() - mFontLineSpacingAndAscent) / mEmulator.mRows;
+        } else {
+            mDynamicLineSpacing = mFontLineSpacing;
+        }
+
         float heightOffset = mFontLineSpacingAndAscent;
         for (int row = topRow; row < endRow; row++) {
-            heightOffset += mFontLineSpacing;
+            heightOffset += mDynamicLineSpacing;
 
             final int cursorX = (row == cursorRow && cursorVisible) ? cursorCol : -1;
             int selx1 = -1, selx2 = -1;
@@ -202,12 +211,13 @@ public final class TerminalRenderer {
         if (backColor != palette[TextStyle.COLOR_INDEX_BACKGROUND]) {
             // Only draw non-default background.
             mTextPaint.setColor(backColor);
-            canvas.drawRect(left, y - mFontLineSpacingAndAscent + mFontAscent, right, y, mTextPaint);
+            float top = mDynamicLineSpacing > 0 ? (y - mDynamicLineSpacing) : (y - mFontLineSpacingAndAscent + mFontAscent);
+            canvas.drawRect(left, top, right, y, mTextPaint);
         }
 
         if (cursor != 0) {
             mTextPaint.setColor(cursor);
-            float cursorHeight = mFontLineSpacingAndAscent - mFontAscent;
+            float cursorHeight = mDynamicLineSpacing > 0 ? mDynamicLineSpacing : (mFontLineSpacingAndAscent - mFontAscent);
             if (cursorStyle == TerminalEmulator.TERMINAL_CURSOR_STYLE_UNDERLINE) cursorHeight /= 4.;
             else if (cursorStyle == TerminalEmulator.TERMINAL_CURSOR_STYLE_BAR) right -= ((right - left) * 3) / 4.;
             canvas.drawRect(left, y - cursorHeight, right, y, mTextPaint);

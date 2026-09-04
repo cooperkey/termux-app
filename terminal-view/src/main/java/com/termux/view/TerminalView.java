@@ -545,7 +545,8 @@ public final class TerminalView extends View {
      */
     public int[] getColumnAndRow(MotionEvent event, boolean relativeToScroll) {
         int column = (int) (event.getX() / mRenderer.mFontWidth);
-        int row = (int) ((event.getY() - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
+        float spacing = mRenderer.mDynamicLineSpacing > 0 ? mRenderer.mDynamicLineSpacing : mRenderer.mFontLineSpacing;
+        int row = (int) ((event.getY() - mRenderer.mFontLineSpacingAndAscent) / spacing);
         if (relativeToScroll) {
             row += mTopRow;
         }
@@ -1036,7 +1037,8 @@ public final class TerminalView extends View {
     }
 
     public int getCursorY(float y) {
-        return (int) (((y - 40) / mRenderer.mFontLineSpacing) + mTopRow);
+        float spacing = mRenderer.mDynamicLineSpacing > 0 ? mRenderer.mDynamicLineSpacing : mRenderer.mFontLineSpacing;
+        return (int) (((y - 40) / spacing) + mTopRow);
     }
 
     public int getPointX(int cx) {
@@ -1047,7 +1049,8 @@ public final class TerminalView extends View {
     }
 
     public int getPointY(int cy) {
-        return Math.round((cy - mTopRow) * mRenderer.mFontLineSpacing);
+        float spacing = mRenderer.mDynamicLineSpacing > 0 ? mRenderer.mDynamicLineSpacing : mRenderer.mFontLineSpacing;
+        return Math.round((cy - mTopRow) * spacing);
     }
 
     public int getTopRow() {
