@@ -27,12 +27,12 @@ public final class TerminalRenderer {
     /** The {@link Paint#getFontSpacing()}. See http://www.fampennings.nl/maarten/android/08numgrid/font.png */
     final int mFontLineSpacing;
     /** The {@link Paint#ascent()}. See http://www.fampennings.nl/maarten/android/08numgrid/font.png */
-
-    public float mDynamicLineSpacing = 0;
-
     private final int mFontAscent;
     /** The {@link #mFontLineSpacing} + {@link #mFontAscent}. */
     final int mFontLineSpacingAndAscent;
+
+    /** Dynamic line spacing to eliminate viewport remainder gap. */
+    float mDynamicLineSpacing = 0;
 
     private final float[] asciiMeasures = new float[127];
 
@@ -211,13 +211,13 @@ public final class TerminalRenderer {
         if (backColor != palette[TextStyle.COLOR_INDEX_BACKGROUND]) {
             // Only draw non-default background.
             mTextPaint.setColor(backColor);
-            float top = mDynamicLineSpacing > 0 ? (y - mDynamicLineSpacing) : (y - mFontLineSpacingAndAscent + mFontAscent);
+            float top = y - getDynamicLineSpacing();
             canvas.drawRect(left, top, right, y, mTextPaint);
         }
 
         if (cursor != 0) {
             mTextPaint.setColor(cursor);
-            float cursorHeight = mDynamicLineSpacing > 0 ? mDynamicLineSpacing : (mFontLineSpacingAndAscent - mFontAscent);
+            float cursorHeight = getDynamicLineSpacing();
             if (cursorStyle == TerminalEmulator.TERMINAL_CURSOR_STYLE_UNDERLINE) cursorHeight /= 4.;
             else if (cursorStyle == TerminalEmulator.TERMINAL_CURSOR_STYLE_BAR) right -= ((right - left) * 3) / 4.;
             canvas.drawRect(left, y - cursorHeight, right, y, mTextPaint);
@@ -255,5 +255,9 @@ public final class TerminalRenderer {
 
     public int getFontLineSpacing() {
         return mFontLineSpacing;
+    }
+
+    public float getDynamicLineSpacing() {
+        return mDynamicLineSpacing > 0 ? mDynamicLineSpacing : mFontLineSpacing;
     }
 }
